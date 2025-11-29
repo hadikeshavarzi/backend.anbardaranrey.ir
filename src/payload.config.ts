@@ -17,6 +17,8 @@ import { ProductCategories } from './collections/ProductCategories'
 import { Products } from './collections/Products'
 import { Permissions } from './collections/Permissions'
 import { Customers } from './collections/Customers'
+import { Receipts } from "./collections/Receipts"
+import { ReceiptItems } from "./collections/ReceiptItems"
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -36,6 +38,8 @@ export default buildConfig({
         Products,
         Permissions,
         Customers,
+        Receipts,
+        ReceiptItems,
     ],
 
     editor: lexicalEditor(),
@@ -48,7 +52,7 @@ export default buildConfig({
 
     db: postgresAdapter({
         pool: {
-            connectionString: process.env.DATABASE_URI || '',
+            connectionString: process.env.DATABASE_URL || '',
         },
     }),
 

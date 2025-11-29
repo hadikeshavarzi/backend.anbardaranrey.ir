@@ -75,6 +75,8 @@ export interface Config {
     products: Product;
     permissions: Permission;
     customers: Customer;
+    receipts: Receipt;
+    receiptitems: Receiptitem;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -90,6 +92,8 @@ export interface Config {
     products: ProductsSelect<false> | ProductsSelect<true>;
     permissions: PermissionsSelect<false> | PermissionsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    receipts: ReceiptsSelect<false> | ReceiptsSelect<true>;
+    receiptitems: ReceiptitemsSelect<false> | ReceiptitemsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -323,6 +327,89 @@ export interface Customer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "receipts".
+ */
+export interface Receipt {
+  id: number;
+  receiptNo?: number | null;
+  member: number | Member;
+  status: 'draft' | 'final';
+  docDate: string;
+  owner: number | Customer;
+  deliverer?: (number | null) | Customer;
+  driver?: {
+    name?: string | null;
+    nationalId?: string | null;
+    birthDate?: string | null;
+  };
+  plate?: {
+    iranRight?: string | null;
+    mid3?: string | null;
+    letter?: string | null;
+    left2?: string | null;
+  };
+  finance?: {
+    loadCost?: number | null;
+    unloadCost?: number | null;
+    warehouseCost?: number | null;
+    tax?: number | null;
+    returnFreight?: number | null;
+    loadingFee?: number | null;
+    miscCost?: number | null;
+    miscDescription?: string | null;
+  };
+  payment?: {
+    paymentBy?: ('customer' | 'warehouse') | null;
+    cardNumber?: string | null;
+    accountNumber?: string | null;
+    bankName?: string | null;
+    ownerName?: string | null;
+    trackingCode?: string | null;
+  };
+  items: (number | Receiptitem)[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "receiptitems".
+ */
+export interface Receiptitem {
+  id: number;
+  nationalProductId?: string | null;
+  productDescription?: string | null;
+  group?: string | null;
+  description: string;
+  count?: number | null;
+  unit?: string | null;
+  productionType?: ('domestic' | 'import') | null;
+  isUsed?: boolean | null;
+  isDefective?: boolean | null;
+  weights?: {
+    fullWeight?: number | null;
+    emptyWeight?: number | null;
+    netWeight?: number | null;
+    originWeight?: number | null;
+    weightDiff?: number | null;
+  };
+  dimensions?: {
+    length?: number | null;
+    width?: number | null;
+    thickness?: number | null;
+  };
+  heatNumber?: string | null;
+  bundleNo?: string | null;
+  brand?: string | null;
+  orderNo?: string | null;
+  depoLocation?: string | null;
+  descriptionNotes?: string | null;
+  row?: string | null;
+  member: number | Member;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -376,6 +463,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'customers';
         value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'receipts';
+        value: number | Receipt;
+      } | null)
+    | ({
+        relationTo: 'receiptitems';
+        value: number | Receiptitem;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -596,6 +691,99 @@ export interface CustomersSelect<T extends boolean = true> {
   birthOrRegisterDate?: T;
   address?: T;
   description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "receipts_select".
+ */
+export interface ReceiptsSelect<T extends boolean = true> {
+  receiptNo?: T;
+  member?: T;
+  status?: T;
+  docDate?: T;
+  owner?: T;
+  deliverer?: T;
+  driver?:
+    | T
+    | {
+        name?: T;
+        nationalId?: T;
+        birthDate?: T;
+      };
+  plate?:
+    | T
+    | {
+        iranRight?: T;
+        mid3?: T;
+        letter?: T;
+        left2?: T;
+      };
+  finance?:
+    | T
+    | {
+        loadCost?: T;
+        unloadCost?: T;
+        warehouseCost?: T;
+        tax?: T;
+        returnFreight?: T;
+        loadingFee?: T;
+        miscCost?: T;
+        miscDescription?: T;
+      };
+  payment?:
+    | T
+    | {
+        paymentBy?: T;
+        cardNumber?: T;
+        accountNumber?: T;
+        bankName?: T;
+        ownerName?: T;
+        trackingCode?: T;
+      };
+  items?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "receiptitems_select".
+ */
+export interface ReceiptitemsSelect<T extends boolean = true> {
+  nationalProductId?: T;
+  productDescription?: T;
+  group?: T;
+  description?: T;
+  count?: T;
+  unit?: T;
+  productionType?: T;
+  isUsed?: T;
+  isDefective?: T;
+  weights?:
+    | T
+    | {
+        fullWeight?: T;
+        emptyWeight?: T;
+        netWeight?: T;
+        originWeight?: T;
+        weightDiff?: T;
+      };
+  dimensions?:
+    | T
+    | {
+        length?: T;
+        width?: T;
+        thickness?: T;
+      };
+  heatNumber?: T;
+  bundleNo?: T;
+  brand?: T;
+  orderNo?: T;
+  depoLocation?: T;
+  descriptionNotes?: T;
+  row?: T;
+  member?: T;
   updatedAt?: T;
   createdAt?: T;
 }
