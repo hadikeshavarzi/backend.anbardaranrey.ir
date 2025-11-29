@@ -404,7 +404,7 @@ export interface Receiptitem {
   depoLocation?: string | null;
   descriptionNotes?: string | null;
   row?: string | null;
-  member: number | Member;
+  member?: (number | null) | Member;
   updatedAt: string;
   createdAt: string;
 }

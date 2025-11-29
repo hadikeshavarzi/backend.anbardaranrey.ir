@@ -1,71 +1,61 @@
 import type { CollectionConfig } from "payload";
+import { authenticateMember } from "../lib/authMembers";
 
 export const ReceiptItems: CollectionConfig = {
-  slug: "receiptitems", // ✅ همه lowercase
+  slug: "receiptitems",
 
   admin: {
     group: "رسیدها",
     useAsTitle: "description",
-    defaultColumns: ["description", "count", "unit", "weights.netWeight"],
+    defaultColumns: ["group", "description", "count", "unit"],
   },
 
   access: {
-    // فقط آیتم‌های متعلق به Member خودش را ببیند
     read: ({ req }) => {
-      if (!req.user) return false;
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
 
-      return {
-        member: {
-          equals: req.user.id,
-        },
-      };
+      // فقط وقتی هیچ‌کس لاگین نیست، ببند
+      if (!memberToken && !isAdminUser) return false;
+
+      // ادمین یا هر عضو لاگین‌شده → می‌تونه items را بخونه
+      return true;
     },
 
-    create: () => true,
+    create: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+      return !!memberToken || !!isAdminUser;
+    },
 
-    update: ({ req }) => ({
-      member: {
-        equals: req.user?.id,
-      },
-    }),
+    update: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
 
-    delete: ({ req }) => ({
-      member: {
-        equals: req.user?.id,
-      },
-    }),
-  },
+      if (!memberToken && !isAdminUser) return false;
+      if (isAdminUser) return true;
 
-  hooks: {
-    beforeChange: [
-      async ({ req, data }) => {
-        // ست کردن Member
-        if (req.user) {
-          data.member = req.user.id;
-        }
-        return data;
-      },
-    ],
+      // فعلاً اعضای عادی حق ویرایش ندارند
+      return false;
+    },
+
+    delete: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+
+      if (!memberToken && !isAdminUser) return false;
+      if (isAdminUser) return true;
+
+      return false;
+    },
   },
 
   fields: [
-    { 
-      name: "nationalProductId", 
-      type: "text", 
-      label: "شناسه ملی کالا" 
-    },
-    { 
-      name: "productDescription", 
-      type: "text", 
-      label: "شرح کالا" 
-    },
-    { 
-      name: "group", 
-      type: "text", 
-      label: "گروه کالا" 
-    },
+    { name: "nationalProductId", type: "text", label: "شناسه ملی کالا" },
+    { name: "productDescription", type: "text", label: "شرح کالا" },
 
-    // نام کالا
+    { name: "group", type: "text", label: "گروه کالا" },
+
     {
       name: "description",
       type: "text",
@@ -73,17 +63,16 @@ export const ReceiptItems: CollectionConfig = {
       label: "نام کالا",
     },
 
-    // تعداد و واحد
-    { 
-      name: "count", 
-      type: "number", 
+    {
+      name: "count",
+      type: "number",
       label: "تعداد",
       defaultValue: 0,
     },
-    { 
-      name: "unit", 
-      type: "text", 
-      label: "واحد" 
+    {
+      name: "unit",
+      type: "text",
+      label: "واحد",
     },
 
     {
@@ -96,18 +85,8 @@ export const ReceiptItems: CollectionConfig = {
       ],
     },
 
-    { 
-      name: "isUsed", 
-      type: "checkbox", 
-      label: "مستعمل", 
-      defaultValue: false 
-    },
-    { 
-      name: "isDefective", 
-      type: "checkbox", 
-      label: "معیوب", 
-      defaultValue: false 
-    },
+    { name: "isUsed", type: "checkbox", label: "مستعمل", defaultValue: false },
+    { name: "isDefective", type: "checkbox", label: "معیوب", defaultValue: false },
 
     {
       type: "group",
@@ -138,22 +117,7 @@ export const ReceiptItems: CollectionConfig = {
     { name: "brand", type: "text", label: "برند / کارخانه" },
     { name: "orderNo", type: "text", label: "شماره سفارش" },
     { name: "depoLocation", type: "text", label: "محل دپو" },
-
     { name: "descriptionNotes", type: "textarea", label: "توضیحات" },
-
     { name: "row", type: "text", label: "ردیف" },
-
-    // بسیار مهم: عضو صاحب این آیتم
-    {
-      name: "member",
-      type: "relationship",
-      relationTo: "members",
-      required: true,
-      label: "عضو",
-      admin: {
-        position: "sidebar",
-        readOnly: true,
-      },
-    },
   ],
 };

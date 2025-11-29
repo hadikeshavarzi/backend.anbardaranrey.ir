@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { authenticateMember } from "../lib/authMembers";
 
 export const Receipts: CollectionConfig = {
   slug: "receipts",
@@ -11,28 +12,61 @@ export const Receipts: CollectionConfig = {
 
   access: {
     read: ({ req }) => {
-      if (!req.user) return false;
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
 
-      return {
-        member: {
-          equals: req.user.id,
-        },
-      };
+      // اگر نه عضو لاگین شده داریم، نه ادمین پنل → ممنوع
+      if (!memberToken && !isAdminUser) return false;
+
+      // ادمین سیستم (Users) → همه چیز
+      if (isAdminUser) return true;
+
+      // عضو با نقش admin در members → همه چیز
+      if (memberToken?.role === "admin") return true;
+
+      // فعلاً برای ساده شدن: همه‌ی اعضا کل رسیدها را ببینند
+      // اگر بعداً خواستی محدود به خودش کنیم، اینجا فیلتر می‌ذاریم
+      return true;
+
+      // اگر خواستی بعداً محدود کنی، این را جای return true بگذار:
+      // return {
+      //   member: { equals: memberToken.id },
+      // };
     },
 
-    create: () => true,
+    create: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+      return !!memberToken || !!isAdminUser;
+    },
 
-    update: ({ req }) => ({
-      member: {
-        equals: req.user?.id,
-      },
-    }),
+    update: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
 
-    delete: ({ req }) => ({
-      member: {
-        equals: req.user?.id,
-      },
-    }),
+      if (!memberToken && !isAdminUser) return false;
+
+      if (isAdminUser) return true;
+      if (memberToken?.role === "admin") return true;
+
+      // فعلاً برای راحتی:
+      return true;
+      // بعداً اگر خواستی محدود کنی:
+      // return { member: { equals: memberToken.id } };
+    },
+
+    delete: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+
+      if (!memberToken && !isAdminUser) return false;
+
+      if (isAdminUser) return true;
+      if (memberToken?.role === "admin") return true;
+
+      // برای الان نذار اعضای عادی حذف کنند:
+      return false;
+    },
   },
 
   hooks: {
@@ -47,10 +81,13 @@ export const Receipts: CollectionConfig = {
 
           const lastNo = last.docs?.[0]?.receiptNo ?? 0;
           data.receiptNo = Number(lastNo) + 1;
-        }
 
-        if (req.user) {
-          data.member = req.user.id;
+          // ست کردن member خودکار
+          const memberToken = authenticateMember(req);
+          if (memberToken) {
+            data.member = memberToken.id;
+            console.log("✅ Member set in hook:", memberToken.id);
+          }
         }
 
         return data;
@@ -142,12 +179,7 @@ export const Receipts: CollectionConfig = {
       fields: [
         { name: "loadCost", type: "number", label: "هزینه بارگیری", defaultValue: 0 },
         { name: "unloadCost", type: "number", label: "هزینه تخلیه", defaultValue: 0 },
-        {
-          name: "warehouseCost",
-          type: "number",
-          label: "هزینه انبارداری",
-          defaultValue: 0,
-        },
+        { name: "warehouseCost", type: "number", label: "هزینه انبارداری", defaultValue: 0 },
         { name: "tax", type: "number", label: "مالیات", defaultValue: 0 },
         { name: "returnFreight", type: "number", label: "کرایه برگشت", defaultValue: 0 },
         { name: "loadingFee", type: "number", label: "دستمزد بارگیری", defaultValue: 0 },
@@ -181,9 +213,9 @@ export const Receipts: CollectionConfig = {
     {
       name: "items",
       type: "relationship",
-      relationTo: "receiptitems" as any, // ✅ lowercase و as any
+      relationTo: "receiptitems" as any,
       hasMany: true,
-      required: true,
+      required: false, // برای جلوگیری از گیر دادن روی قدیمی‌ها
       label: "اقلام رسید",
     },
   ],
