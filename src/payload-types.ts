@@ -335,6 +335,15 @@ export interface Receipt {
   member: number | Member;
   status: 'draft' | 'final';
   docDate: string;
+  refDocument: {
+    refType: 'none' | 'barnameh' | 'petteh' | 'havale' | 'production';
+    barnamehNumber?: string | null;
+    barnamehDate?: string | null;
+    barnamehTracking?: string | null;
+    pettehNumber?: string | null;
+    havaleNumber?: string | null;
+    productionNumber?: string | null;
+  };
   owner: number | Customer;
   deliverer?: (number | null) | Customer;
   driver?: {
@@ -366,7 +375,7 @@ export interface Receipt {
     ownerName?: string | null;
     trackingCode?: string | null;
   };
-  items: (number | Receiptitem)[];
+  items?: (number | Receiptitem)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -376,12 +385,10 @@ export interface Receipt {
  */
 export interface Receiptitem {
   id: number;
-  nationalProductId?: string | null;
-  productDescription?: string | null;
-  group?: string | null;
-  description: string;
+  product?: (number | null) | Product;
+  national_product_id?: string | null;
+  product_description?: string | null;
   count?: number | null;
-  unit?: string | null;
   productionType?: ('domestic' | 'import') | null;
   isUsed?: boolean | null;
   isDefective?: boolean | null;
@@ -404,7 +411,6 @@ export interface Receiptitem {
   depoLocation?: string | null;
   descriptionNotes?: string | null;
   row?: string | null;
-  member?: (number | null) | Member;
   updatedAt: string;
   createdAt: string;
 }
@@ -703,6 +709,17 @@ export interface ReceiptsSelect<T extends boolean = true> {
   member?: T;
   status?: T;
   docDate?: T;
+  refDocument?:
+    | T
+    | {
+        refType?: T;
+        barnamehNumber?: T;
+        barnamehDate?: T;
+        barnamehTracking?: T;
+        pettehNumber?: T;
+        havaleNumber?: T;
+        productionNumber?: T;
+      };
   owner?: T;
   deliverer?: T;
   driver?:
@@ -751,12 +768,10 @@ export interface ReceiptsSelect<T extends boolean = true> {
  * via the `definition` "receiptitems_select".
  */
 export interface ReceiptitemsSelect<T extends boolean = true> {
-  nationalProductId?: T;
-  productDescription?: T;
-  group?: T;
-  description?: T;
+  product?: T;
+  national_product_id?: T;
+  product_description?: T;
   count?: T;
-  unit?: T;
   productionType?: T;
   isUsed?: T;
   isDefective?: T;
@@ -783,7 +798,6 @@ export interface ReceiptitemsSelect<T extends boolean = true> {
   depoLocation?: T;
   descriptionNotes?: T;
   row?: T;
-  member?: T;
   updatedAt?: T;
   createdAt?: T;
 }

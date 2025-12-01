@@ -10,33 +10,26 @@ export const Receipts: CollectionConfig = {
     defaultColumns: ["receiptNo", "member", "docDate", "status"],
   },
 
+  /* ========================
+        ACCESS CONTROL
+  =========================*/
   access: {
     read: ({ req }) => {
       const memberToken = authenticateMember(req);
       const isAdminUser = req.user && req.user.collection === "users";
 
-      // اگر نه عضو لاگین شده داریم، نه ادمین پنل → ممنوع
       if (!memberToken && !isAdminUser) return false;
 
-      // ادمین سیستم (Users) → همه چیز
       if (isAdminUser) return true;
-
-      // عضو با نقش admin در members → همه چیز
       if (memberToken?.role === "admin") return true;
 
-      // فعلاً برای ساده شدن: همه‌ی اعضا کل رسیدها را ببینند
-      // اگر بعداً خواستی محدود به خودش کنیم، اینجا فیلتر می‌ذاریم
-      return true;
-
-      // اگر خواستی بعداً محدود کنی، این را جای return true بگذار:
-      // return {
-      //   member: { equals: memberToken.id },
-      // };
+      return true; // برای ساده‌سازی فعلاً همه رسیدها برای اعضا قابل مشاهده است
     },
 
     create: ({ req }) => {
       const memberToken = authenticateMember(req);
       const isAdminUser = req.user && req.user.collection === "users";
+
       return !!memberToken || !!isAdminUser;
     },
 
@@ -45,14 +38,9 @@ export const Receipts: CollectionConfig = {
       const isAdminUser = req.user && req.user.collection === "users";
 
       if (!memberToken && !isAdminUser) return false;
+      if (isAdminUser || memberToken?.role === "admin") return true;
 
-      if (isAdminUser) return true;
-      if (memberToken?.role === "admin") return true;
-
-      // فعلاً برای راحتی:
       return true;
-      // بعداً اگر خواستی محدود کنی:
-      // return { member: { equals: memberToken.id } };
     },
 
     delete: ({ req }) => {
@@ -60,15 +48,15 @@ export const Receipts: CollectionConfig = {
       const isAdminUser = req.user && req.user.collection === "users";
 
       if (!memberToken && !isAdminUser) return false;
+      if (isAdminUser || memberToken?.role === "admin") return true;
 
-      if (isAdminUser) return true;
-      if (memberToken?.role === "admin") return true;
-
-      // برای الان نذار اعضای عادی حذف کنند:
-      return false;
+      return false; // اعضای عادی اجازه حذف ندارند
     },
   },
 
+  /* ========================
+            HOOKS
+  =========================*/
   hooks: {
     beforeChange: [
       async ({ req, data, operation }) => {
@@ -82,7 +70,6 @@ export const Receipts: CollectionConfig = {
           const lastNo = last.docs?.[0]?.receiptNo ?? 0;
           data.receiptNo = Number(lastNo) + 1;
 
-          // ست کردن member خودکار
           const memberToken = authenticateMember(req);
           if (memberToken) {
             data.member = memberToken.id;
@@ -95,6 +82,9 @@ export const Receipts: CollectionConfig = {
     ],
   },
 
+  /* ========================
+            FIELDS
+  =========================*/
   fields: [
     {
       name: "receiptNo",
@@ -109,10 +99,7 @@ export const Receipts: CollectionConfig = {
       relationTo: "members",
       required: true,
       label: "عضو",
-      admin: {
-        position: "sidebar",
-        readOnly: true,
-      },
+      admin: { position: "sidebar", readOnly: true },
     },
 
     {
@@ -134,6 +121,48 @@ export const Receipts: CollectionConfig = {
       label: "تاریخ سند",
     },
 
+    /* ========================
+        🔵 سند مرجع (refDocument)
+    =========================*/
+    {
+      name: "refDocument",
+      type: "group",
+      label: "سند مرجع",
+      fields: [
+        {
+          name: "refType",
+          type: "select",
+          label: "نوع سند مرجع",
+          required: true,
+          defaultValue: "none",
+          options: [
+            { label: "بدون مرجع", value: "none" },
+            { label: "بارنامه", value: "barnameh" },
+            { label: "پته گمرکی", value: "petteh" },
+            { label: "حواله سامانه جامع", value: "havale" },
+            { label: "اظهار تولید", value: "production" },
+          ],
+        },
+
+        // ───── بارنامه ─────
+        { name: "barnamehNumber", type: "text", label: "شماره بارنامه" },
+        { name: "barnamehDate", type: "date", label: "تاریخ صدور بارنامه" },
+        { name: "barnamehTracking", type: "text", label: "کد رهگیری بارنامه" },
+
+        // ───── پته گمرکی ─────
+        { name: "pettehNumber", type: "text", label: "شماره پته" },
+
+        // ───── حواله سامانه جامع ─────
+        { name: "havaleNumber", type: "text", label: "شماره حواله" },
+
+        // ───── اظهار تولید ─────
+        { name: "productionNumber", type: "text", label: "شماره اظهار تولید" },
+      ],
+    },
+
+    /* ========================
+        🔵 صاحب کالا
+    =========================*/
     {
       name: "owner",
       type: "relationship",
@@ -149,6 +178,9 @@ export const Receipts: CollectionConfig = {
       label: "تحویل دهنده",
     },
 
+    /* ========================
+        🔵 راننده
+    =========================*/
     {
       type: "group",
       name: "driver",
@@ -160,6 +192,9 @@ export const Receipts: CollectionConfig = {
       ],
     },
 
+    /* ========================
+        🔵 پلاک خودرو
+    =========================*/
     {
       type: "group",
       name: "plate",
@@ -172,6 +207,9 @@ export const Receipts: CollectionConfig = {
       ],
     },
 
+    /* ========================
+        🔵 هزینه‌ها
+    =========================*/
     {
       type: "group",
       name: "finance",
@@ -188,6 +226,9 @@ export const Receipts: CollectionConfig = {
       ],
     },
 
+    /* ========================
+        🔵 پرداخت
+    =========================*/
     {
       type: "group",
       name: "payment",
@@ -210,12 +251,15 @@ export const Receipts: CollectionConfig = {
       ],
     },
 
+    /* ========================
+        🔵 آیتم‌های رسید
+    =========================*/
     {
       name: "items",
       type: "relationship",
-      relationTo: "receiptitems" as any,
+      relationTo: "receiptitems",
       hasMany: true,
-      required: false, // برای جلوگیری از گیر دادن روی قدیمی‌ها
+      required: false,
       label: "اقلام رسید",
     },
   ],

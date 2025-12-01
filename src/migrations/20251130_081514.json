@@ -1,5 +1,5 @@
 {
-  "id": "ab7a2116-e372-4fa5-b726-fab865c81b6f",
+  "id": "1883bca3-c774-48af-9b62-eaa3dd815051",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1709,6 +1709,739 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.receipts": {
+      "name": "receipts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "receipt_no": {
+          "name": "receipt_no",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "member_id": {
+          "name": "member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "enum_receipts_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "doc_date": {
+          "name": "doc_date",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ref_document_ref_type": {
+          "name": "ref_document_ref_type",
+          "type": "enum_receipts_ref_document_ref_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'none'"
+        },
+        "ref_document_barnameh_number": {
+          "name": "ref_document_barnameh_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_document_barnameh_date": {
+          "name": "ref_document_barnameh_date",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_document_barnameh_tracking": {
+          "name": "ref_document_barnameh_tracking",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_document_petteh_number": {
+          "name": "ref_document_petteh_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_document_havale_number": {
+          "name": "ref_document_havale_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_document_production_number": {
+          "name": "ref_document_production_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "deliverer_id": {
+          "name": "deliverer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "driver_name": {
+          "name": "driver_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "driver_national_id": {
+          "name": "driver_national_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "driver_birth_date": {
+          "name": "driver_birth_date",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plate_iran_right": {
+          "name": "plate_iran_right",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plate_mid3": {
+          "name": "plate_mid3",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plate_letter": {
+          "name": "plate_letter",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plate_left2": {
+          "name": "plate_left2",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "finance_load_cost": {
+          "name": "finance_load_cost",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "finance_unload_cost": {
+          "name": "finance_unload_cost",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "finance_warehouse_cost": {
+          "name": "finance_warehouse_cost",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "finance_tax": {
+          "name": "finance_tax",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "finance_return_freight": {
+          "name": "finance_return_freight",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "finance_loading_fee": {
+          "name": "finance_loading_fee",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "finance_misc_cost": {
+          "name": "finance_misc_cost",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "finance_misc_description": {
+          "name": "finance_misc_description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_payment_by": {
+          "name": "payment_payment_by",
+          "type": "enum_receipts_payment_payment_by",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_card_number": {
+          "name": "payment_card_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_account_number": {
+          "name": "payment_account_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_bank_name": {
+          "name": "payment_bank_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_owner_name": {
+          "name": "payment_owner_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_tracking_code": {
+          "name": "payment_tracking_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "receipts_member_idx": {
+          "name": "receipts_member_idx",
+          "columns": [
+            {
+              "expression": "member_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receipts_owner_idx": {
+          "name": "receipts_owner_idx",
+          "columns": [
+            {
+              "expression": "owner_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receipts_deliverer_idx": {
+          "name": "receipts_deliverer_idx",
+          "columns": [
+            {
+              "expression": "deliverer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receipts_updated_at_idx": {
+          "name": "receipts_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receipts_created_at_idx": {
+          "name": "receipts_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "receipts_member_id_members_id_fk": {
+          "name": "receipts_member_id_members_id_fk",
+          "tableFrom": "receipts",
+          "tableTo": "members",
+          "columnsFrom": [
+            "member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "receipts_owner_id_customers_id_fk": {
+          "name": "receipts_owner_id_customers_id_fk",
+          "tableFrom": "receipts",
+          "tableTo": "customers",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "receipts_deliverer_id_customers_id_fk": {
+          "name": "receipts_deliverer_id_customers_id_fk",
+          "tableFrom": "receipts",
+          "tableTo": "customers",
+          "columnsFrom": [
+            "deliverer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.receipts_rels": {
+      "name": "receipts_rels",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "order": {
+          "name": "order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "receiptitems_id": {
+          "name": "receiptitems_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "receipts_rels_order_idx": {
+          "name": "receipts_rels_order_idx",
+          "columns": [
+            {
+              "expression": "order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receipts_rels_parent_idx": {
+          "name": "receipts_rels_parent_idx",
+          "columns": [
+            {
+              "expression": "parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receipts_rels_path_idx": {
+          "name": "receipts_rels_path_idx",
+          "columns": [
+            {
+              "expression": "path",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receipts_rels_receiptitems_id_idx": {
+          "name": "receipts_rels_receiptitems_id_idx",
+          "columns": [
+            {
+              "expression": "receiptitems_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "receipts_rels_parent_fk": {
+          "name": "receipts_rels_parent_fk",
+          "tableFrom": "receipts_rels",
+          "tableTo": "receipts",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "receipts_rels_receiptitems_fk": {
+          "name": "receipts_rels_receiptitems_fk",
+          "tableFrom": "receipts_rels",
+          "tableTo": "receiptitems",
+          "columnsFrom": [
+            "receiptitems_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.receiptitems": {
+      "name": "receiptitems",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "national_product_id": {
+          "name": "national_product_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "product_description": {
+          "name": "product_description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "count": {
+          "name": "count",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "production_type": {
+          "name": "production_type",
+          "type": "enum_receiptitems_production_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_used": {
+          "name": "is_used",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "is_defective": {
+          "name": "is_defective",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "weights_full_weight": {
+          "name": "weights_full_weight",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "weights_empty_weight": {
+          "name": "weights_empty_weight",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "weights_net_weight": {
+          "name": "weights_net_weight",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "weights_origin_weight": {
+          "name": "weights_origin_weight",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "weights_weight_diff": {
+          "name": "weights_weight_diff",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "dimensions_length": {
+          "name": "dimensions_length",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "dimensions_width": {
+          "name": "dimensions_width",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "dimensions_thickness": {
+          "name": "dimensions_thickness",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "heat_number": {
+          "name": "heat_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bundle_no": {
+          "name": "bundle_no",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "brand": {
+          "name": "brand",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order_no": {
+          "name": "order_no",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "depo_location": {
+          "name": "depo_location",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description_notes": {
+          "name": "description_notes",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "row": {
+          "name": "row",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "receiptitems_product_idx": {
+          "name": "receiptitems_product_idx",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receiptitems_updated_at_idx": {
+          "name": "receiptitems_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "receiptitems_created_at_idx": {
+          "name": "receiptitems_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "receiptitems_product_id_products_id_fk": {
+          "name": "receiptitems_product_id_products_id_fk",
+          "tableFrom": "receiptitems",
+          "tableTo": "products",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.payload_kv": {
       "name": "payload_kv",
       "schema": "",
@@ -1916,6 +2649,18 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "receipts_id": {
+          "name": "receipts_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "receiptitems_id": {
+          "name": "receiptitems_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -2083,6 +2828,36 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "payload_locked_documents_rels_receipts_id_idx": {
+          "name": "payload_locked_documents_rels_receipts_id_idx",
+          "columns": [
+            {
+              "expression": "receipts_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payload_locked_documents_rels_receiptitems_id_idx": {
+          "name": "payload_locked_documents_rels_receiptitems_id_idx",
+          "columns": [
+            {
+              "expression": "receiptitems_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2196,6 +2971,32 @@
           "tableTo": "customers",
           "columnsFrom": [
             "customers_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payload_locked_documents_rels_receipts_fk": {
+          "name": "payload_locked_documents_rels_receipts_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "receipts",
+          "columnsFrom": [
+            "receipts_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payload_locked_documents_rels_receiptitems_fk": {
+          "name": "payload_locked_documents_rels_receiptitems_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "receiptitems",
+          "columnsFrom": [
+            "receiptitems_id"
           ],
           "columnsTo": [
             "id"
@@ -2570,6 +3371,41 @@
       "values": [
         "real",
         "company"
+      ]
+    },
+    "public.enum_receipts_status": {
+      "name": "enum_receipts_status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "final"
+      ]
+    },
+    "public.enum_receipts_ref_document_ref_type": {
+      "name": "enum_receipts_ref_document_ref_type",
+      "schema": "public",
+      "values": [
+        "none",
+        "barnameh",
+        "petteh",
+        "havale",
+        "production"
+      ]
+    },
+    "public.enum_receipts_payment_payment_by": {
+      "name": "enum_receipts_payment_payment_by",
+      "schema": "public",
+      "values": [
+        "customer",
+        "warehouse"
+      ]
+    },
+    "public.enum_receiptitems_production_type": {
+      "name": "enum_receiptitems_production_type",
+      "schema": "public",
+      "values": [
+        "domestic",
+        "import"
       ]
     }
   },

@@ -6,75 +6,60 @@ export const ReceiptItems: CollectionConfig = {
 
   admin: {
     group: "رسیدها",
-    useAsTitle: "description",
-    defaultColumns: ["group", "description", "count", "unit"],
+    useAsTitle: "product_description",
+    defaultColumns: ["product", "national_product_id", "count", "weights.netWeight"],
   },
 
   access: {
     read: ({ req }) => {
       const memberToken = authenticateMember(req);
       const isAdminUser = req.user && req.user.collection === "users";
-
-      // فقط وقتی هیچ‌کس لاگین نیست، ببند
-      if (!memberToken && !isAdminUser) return false;
-
-      // ادمین یا هر عضو لاگین‌شده → می‌تونه items را بخونه
-      return true;
+      return !!memberToken || !!isAdminUser;
     },
-
     create: ({ req }) => {
       const memberToken = authenticateMember(req);
       const isAdminUser = req.user && req.user.collection === "users";
       return !!memberToken || !!isAdminUser;
     },
-
     update: ({ req }) => {
       const memberToken = authenticateMember(req);
       const isAdminUser = req.user && req.user.collection === "users";
-
-      if (!memberToken && !isAdminUser) return false;
-      if (isAdminUser) return true;
-
-      // فعلاً اعضای عادی حق ویرایش ندارند
-      return false;
+      return !!memberToken || !!isAdminUser;
     },
-
     delete: ({ req }) => {
       const memberToken = authenticateMember(req);
       const isAdminUser = req.user && req.user.collection === "users";
-
-      if (!memberToken && !isAdminUser) return false;
-      if (isAdminUser) return true;
-
-      return false;
+      return !!memberToken || !!isAdminUser;
     },
   },
 
   fields: [
-    { name: "nationalProductId", type: "text", label: "شناسه ملی کالا" },
-    { name: "productDescription", type: "text", label: "شرح کالا" },
-
-    { name: "group", type: "text", label: "گروه کالا" },
-
+    // 🔥 رابطه واقعی به محصولات
     {
-      name: "description",
+      name: "product",
+      type: "relationship",
+      relationTo: "products",
+      label: "کالای انتخاب‌شده",
+    },
+
+    // 🔥 شناسه ملی کالا (از API سامانه جامع)
+    {
+      name: "national_product_id",
       type: "text",
-      required: true,
-      label: "نام کالا",
+      label: "شناسه ملی کالا",
     },
 
+    // 🔥 شرح کالا از سامانه جامع
     {
-      name: "count",
-      type: "number",
-      label: "تعداد",
-      defaultValue: 0,
-    },
-    {
-      name: "unit",
+      name: "product_description",
       type: "text",
-      label: "واحد",
+      label: "شرح کالا (سامانه جامع)",
     },
 
+    // مقدار
+    { name: "count", type: "number", label: "تعداد", defaultValue: 0 },
+
+    // تولید
     {
       name: "productionType",
       type: "select",
@@ -85,39 +70,44 @@ export const ReceiptItems: CollectionConfig = {
       ],
     },
 
-    { name: "isUsed", type: "checkbox", label: "مستعمل", defaultValue: false },
-    { name: "isDefective", type: "checkbox", label: "معیوب", defaultValue: false },
+    // وضعیت‌ها
+    { name: "isUsed", type: "checkbox", defaultValue: false, label: "مستعمل" },
+    { name: "isDefective", type: "checkbox", defaultValue: false, label: "معیوب" },
 
+    // وزن‌ها
     {
       type: "group",
       name: "weights",
       label: "وزن‌ها",
       fields: [
-        { name: "fullWeight", type: "number", label: "وزن پر", defaultValue: 0 },
-        { name: "emptyWeight", type: "number", label: "وزن خالی", defaultValue: 0 },
-        { name: "netWeight", type: "number", label: "وزن خالص", defaultValue: 0 },
-        { name: "originWeight", type: "number", label: "وزن مبدأ", defaultValue: 0 },
-        { name: "weightDiff", type: "number", label: "اختلاف وزن", defaultValue: 0 },
+        { name: "fullWeight", type: "number", defaultValue: 0, label: "وزن پر" },
+        { name: "emptyWeight", type: "number", defaultValue: 0, label: "وزن خالی" },
+        { name: "netWeight", type: "number", defaultValue: 0, label: "وزن خالص" },
+        { name: "originWeight", type: "number", defaultValue: 0, label: "وزن مبدأ" },
+        { name: "weightDiff", type: "number", defaultValue: 0, label: "اختلاف وزن" },
       ],
     },
 
+    // ابعاد
     {
       type: "group",
       name: "dimensions",
       label: "ابعاد",
       fields: [
-        { name: "length", type: "number", label: "طول", defaultValue: 0 },
-        { name: "width", type: "number", label: "عرض", defaultValue: 0 },
-        { name: "thickness", type: "number", label: "ضخامت", defaultValue: 0 },
+        { name: "length", type: "number", defaultValue: 0, label: "طول" },
+        { name: "width", type: "number", defaultValue: 0, label: "عرض" },
+        { name: "thickness", type: "number", defaultValue: 0, label: "ضخامت" },
       ],
     },
 
     { name: "heatNumber", type: "text", label: "Heat No" },
     { name: "bundleNo", type: "text", label: "شماره بسته" },
-    { name: "brand", type: "text", label: "برند / کارخانه" },
+    { name: "brand", type: "text", label: "برند" },
     { name: "orderNo", type: "text", label: "شماره سفارش" },
     { name: "depoLocation", type: "text", label: "محل دپو" },
+
     { name: "descriptionNotes", type: "textarea", label: "توضیحات" },
+
     { name: "row", type: "text", label: "ردیف" },
   ],
 };

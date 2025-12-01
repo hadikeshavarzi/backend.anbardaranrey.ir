@@ -8,6 +8,10 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TYPE "public"."enum_permissions_role" AS ENUM('admin', 'union_member', 'union_user');
   CREATE TYPE "public"."enum_permissions_collection_name" AS ENUM('products', 'product-categories', 'product-units', 'inventory-entries', 'inventory-exits', 'inventory-transfers', 'invoices', 'payments', 'reports', 'members', 'media');
   CREATE TYPE "public"."enum_customers_customer_type" AS ENUM('real', 'company');
+  CREATE TYPE "public"."enum_receipts_status" AS ENUM('draft', 'final');
+  CREATE TYPE "public"."enum_receipts_ref_document_ref_type" AS ENUM('none', 'barnameh', 'petteh', 'havale', 'production');
+  CREATE TYPE "public"."enum_receipts_payment_payment_by" AS ENUM('customer', 'warehouse');
+  CREATE TYPE "public"."enum_receiptitems_production_type" AS ENUM('domestic', 'import');
   CREATE TABLE "users_sessions" (
   	"_order" integer NOT NULL,
   	"_parent_id" integer NOT NULL,
@@ -168,6 +172,82 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
   
+  CREATE TABLE "receipts" (
+  	"id" serial PRIMARY KEY NOT NULL,
+  	"receipt_no" numeric,
+  	"member_id" integer NOT NULL,
+  	"status" "enum_receipts_status" DEFAULT 'draft' NOT NULL,
+  	"doc_date" timestamp(3) with time zone NOT NULL,
+  	"ref_document_ref_type" "enum_receipts_ref_document_ref_type" DEFAULT 'none' NOT NULL,
+  	"ref_document_barnameh_number" varchar,
+  	"ref_document_barnameh_date" timestamp(3) with time zone,
+  	"ref_document_barnameh_tracking" varchar,
+  	"ref_document_petteh_number" varchar,
+  	"ref_document_havale_number" varchar,
+  	"ref_document_production_number" varchar,
+  	"owner_id" integer NOT NULL,
+  	"deliverer_id" integer,
+  	"driver_name" varchar,
+  	"driver_national_id" varchar,
+  	"driver_birth_date" timestamp(3) with time zone,
+  	"plate_iran_right" varchar,
+  	"plate_mid3" varchar,
+  	"plate_letter" varchar,
+  	"plate_left2" varchar,
+  	"finance_load_cost" numeric DEFAULT 0,
+  	"finance_unload_cost" numeric DEFAULT 0,
+  	"finance_warehouse_cost" numeric DEFAULT 0,
+  	"finance_tax" numeric DEFAULT 0,
+  	"finance_return_freight" numeric DEFAULT 0,
+  	"finance_loading_fee" numeric DEFAULT 0,
+  	"finance_misc_cost" numeric DEFAULT 0,
+  	"finance_misc_description" varchar,
+  	"payment_payment_by" "enum_receipts_payment_payment_by",
+  	"payment_card_number" varchar,
+  	"payment_account_number" varchar,
+  	"payment_bank_name" varchar,
+  	"payment_owner_name" varchar,
+  	"payment_tracking_code" varchar,
+  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+  );
+  
+  CREATE TABLE "receipts_rels" (
+  	"id" serial PRIMARY KEY NOT NULL,
+  	"order" integer,
+  	"parent_id" integer NOT NULL,
+  	"path" varchar NOT NULL,
+  	"receiptitems_id" integer
+  );
+  
+  CREATE TABLE "receiptitems" (
+  	"id" serial PRIMARY KEY NOT NULL,
+  	"product_id" integer,
+  	"national_product_id" varchar,
+  	"product_description" varchar,
+  	"count" numeric DEFAULT 0,
+  	"production_type" "enum_receiptitems_production_type",
+  	"is_used" boolean DEFAULT false,
+  	"is_defective" boolean DEFAULT false,
+  	"weights_full_weight" numeric DEFAULT 0,
+  	"weights_empty_weight" numeric DEFAULT 0,
+  	"weights_net_weight" numeric DEFAULT 0,
+  	"weights_origin_weight" numeric DEFAULT 0,
+  	"weights_weight_diff" numeric DEFAULT 0,
+  	"dimensions_length" numeric DEFAULT 0,
+  	"dimensions_width" numeric DEFAULT 0,
+  	"dimensions_thickness" numeric DEFAULT 0,
+  	"heat_number" varchar,
+  	"bundle_no" varchar,
+  	"brand" varchar,
+  	"order_no" varchar,
+  	"depo_location" varchar,
+  	"description_notes" varchar,
+  	"row" varchar,
+  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+  );
+  
   CREATE TABLE "payload_kv" (
   	"id" serial PRIMARY KEY NOT NULL,
   	"key" varchar NOT NULL,
@@ -193,7 +273,9 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"product_categories_id" integer,
   	"products_id" integer,
   	"permissions_id" integer,
-  	"customers_id" integer
+  	"customers_id" integer,
+  	"receipts_id" integer,
+  	"receiptitems_id" integer
   );
   
   CREATE TABLE "payload_preferences" (
@@ -233,6 +315,12 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "products" ADD CONSTRAINT "products_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "products_rels" ADD CONSTRAINT "products_rels_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "products_rels" ADD CONSTRAINT "products_rels_media_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "receipts" ADD CONSTRAINT "receipts_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "receipts" ADD CONSTRAINT "receipts_owner_id_customers_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."customers"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "receipts" ADD CONSTRAINT "receipts_deliverer_id_customers_id_fk" FOREIGN KEY ("deliverer_id") REFERENCES "public"."customers"("id") ON DELETE set null ON UPDATE no action;
+  ALTER TABLE "receipts_rels" ADD CONSTRAINT "receipts_rels_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."receipts"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "receipts_rels" ADD CONSTRAINT "receipts_rels_receiptitems_fk" FOREIGN KEY ("receiptitems_id") REFERENCES "public"."receiptitems"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "receiptitems" ADD CONSTRAINT "receiptitems_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."payload_locked_documents"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_users_fk" FOREIGN KEY ("users_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_media_fk" FOREIGN KEY ("media_id") REFERENCES "public"."media"("id") ON DELETE cascade ON UPDATE no action;
@@ -242,6 +330,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_products_fk" FOREIGN KEY ("products_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_permissions_fk" FOREIGN KEY ("permissions_id") REFERENCES "public"."permissions"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_customers_fk" FOREIGN KEY ("customers_id") REFERENCES "public"."customers"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_receipts_fk" FOREIGN KEY ("receipts_id") REFERENCES "public"."receipts"("id") ON DELETE cascade ON UPDATE no action;
+  ALTER TABLE "payload_locked_documents_rels" ADD CONSTRAINT "payload_locked_documents_rels_receiptitems_fk" FOREIGN KEY ("receiptitems_id") REFERENCES "public"."receiptitems"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_preferences_rels" ADD CONSTRAINT "payload_preferences_rels_parent_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."payload_preferences"("id") ON DELETE cascade ON UPDATE no action;
   ALTER TABLE "payload_preferences_rels" ADD CONSTRAINT "payload_preferences_rels_users_fk" FOREIGN KEY ("users_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
   CREATE INDEX "users_sessions_order_idx" ON "users_sessions" USING btree ("_order");
@@ -282,6 +372,18 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "permissions_created_at_idx" ON "permissions" USING btree ("created_at");
   CREATE INDEX "customers_updated_at_idx" ON "customers" USING btree ("updated_at");
   CREATE INDEX "customers_created_at_idx" ON "customers" USING btree ("created_at");
+  CREATE INDEX "receipts_member_idx" ON "receipts" USING btree ("member_id");
+  CREATE INDEX "receipts_owner_idx" ON "receipts" USING btree ("owner_id");
+  CREATE INDEX "receipts_deliverer_idx" ON "receipts" USING btree ("deliverer_id");
+  CREATE INDEX "receipts_updated_at_idx" ON "receipts" USING btree ("updated_at");
+  CREATE INDEX "receipts_created_at_idx" ON "receipts" USING btree ("created_at");
+  CREATE INDEX "receipts_rels_order_idx" ON "receipts_rels" USING btree ("order");
+  CREATE INDEX "receipts_rels_parent_idx" ON "receipts_rels" USING btree ("parent_id");
+  CREATE INDEX "receipts_rels_path_idx" ON "receipts_rels" USING btree ("path");
+  CREATE INDEX "receipts_rels_receiptitems_id_idx" ON "receipts_rels" USING btree ("receiptitems_id");
+  CREATE INDEX "receiptitems_product_idx" ON "receiptitems" USING btree ("product_id");
+  CREATE INDEX "receiptitems_updated_at_idx" ON "receiptitems" USING btree ("updated_at");
+  CREATE INDEX "receiptitems_created_at_idx" ON "receiptitems" USING btree ("created_at");
   CREATE UNIQUE INDEX "payload_kv_key_idx" ON "payload_kv" USING btree ("key");
   CREATE INDEX "payload_locked_documents_global_slug_idx" ON "payload_locked_documents" USING btree ("global_slug");
   CREATE INDEX "payload_locked_documents_updated_at_idx" ON "payload_locked_documents" USING btree ("updated_at");
@@ -297,6 +399,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "payload_locked_documents_rels_products_id_idx" ON "payload_locked_documents_rels" USING btree ("products_id");
   CREATE INDEX "payload_locked_documents_rels_permissions_id_idx" ON "payload_locked_documents_rels" USING btree ("permissions_id");
   CREATE INDEX "payload_locked_documents_rels_customers_id_idx" ON "payload_locked_documents_rels" USING btree ("customers_id");
+  CREATE INDEX "payload_locked_documents_rels_receipts_id_idx" ON "payload_locked_documents_rels" USING btree ("receipts_id");
+  CREATE INDEX "payload_locked_documents_rels_receiptitems_id_idx" ON "payload_locked_documents_rels" USING btree ("receiptitems_id");
   CREATE INDEX "payload_preferences_key_idx" ON "payload_preferences" USING btree ("key");
   CREATE INDEX "payload_preferences_updated_at_idx" ON "payload_preferences" USING btree ("updated_at");
   CREATE INDEX "payload_preferences_created_at_idx" ON "payload_preferences" USING btree ("created_at");
@@ -320,6 +424,9 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TABLE "products_rels" CASCADE;
   DROP TABLE "permissions" CASCADE;
   DROP TABLE "customers" CASCADE;
+  DROP TABLE "receipts" CASCADE;
+  DROP TABLE "receipts_rels" CASCADE;
+  DROP TABLE "receiptitems" CASCADE;
   DROP TABLE "payload_kv" CASCADE;
   DROP TABLE "payload_locked_documents" CASCADE;
   DROP TABLE "payload_locked_documents_rels" CASCADE;
@@ -331,5 +438,9 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TYPE "public"."enum_members_member_status";
   DROP TYPE "public"."enum_permissions_role";
   DROP TYPE "public"."enum_permissions_collection_name";
-  DROP TYPE "public"."enum_customers_customer_type";`)
+  DROP TYPE "public"."enum_customers_customer_type";
+  DROP TYPE "public"."enum_receipts_status";
+  DROP TYPE "public"."enum_receipts_ref_document_ref_type";
+  DROP TYPE "public"."enum_receipts_payment_payment_by";
+  DROP TYPE "public"."enum_receiptitems_production_type";`)
 }
