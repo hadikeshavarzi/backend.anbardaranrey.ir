@@ -1,117 +1,128 @@
 import type { CollectionConfig } from "payload";
+import { authenticateMember } from "../lib/authMembers";
 
 export const Customers: CollectionConfig = {
-    slug: "customers",
-    labels: {
-        singular: "مشتری",
-        plural: "مشتریان",
-    },
+  slug: "customers",
 
-    admin: {
-        useAsTitle: "name",
-        group: "مدیریت انبار",
-        defaultColumns: ["name", "customerType", "nationalId", "mobile"],
-    },
-
-    access: {
-        create: () => true,
-        read: () => true,
-        update: () => true,
-        delete: () => true,
-    },
-
-    fields: [
-        // نوع مشتری
-        {
-            name: "customerType",
-            type: "select",
-            label: "نوع مشتری",
-            required: true,
-            defaultValue: "real",
-            options: [
-                { label: "حقیقی", value: "real" },
-                { label: "حقوقی", value: "company" },
-            ],
-        },
-
-        // نام/شرکت
-        {
-            name: "name",
-            type: "text",
-            label: "نام / شرکت",
-            required: true,
-            localized: false,
-        },
-
-        // کد ملی / شناسه ملی
-        {
-            name: "nationalId",
-            type: "text",
-            label: "کد ملی / شناسه ملی",
-            required: false,
-            admin: {
-                placeholder: "برای حقوقی: شناسه ملی",
-            },
-        },
-
-        // موبایل
-        {
-            name: "mobile",
-            type: "text",
-            label: "موبایل",
-            required: false,
-        },
-
-        // تلفن ثابت
-        {
-            name: "phone",
-            type: "text",
-            label: "تلفن ثابت",
-            required: false,
-        },
-
-        // شماره اقتصادی
-        {
-            name: "economicCode",
-            type: "text",
-            label: "شماره اقتصادی",
-            required: false,
-        },
-
-        // کد پستی
-        {
-            name: "postalCode",
-            type: "text",
-            label: "کد پستی",
-        },
-
-        // تاریخ تولد / ثبت
-        {
-            name: "birthOrRegisterDate",
-            type: "date",
-            label: "تاریخ تولد / ثبت",
-            admin: {
-                date: {
-                    displayFormat: "YYYY/MM/DD",
-                },
-            },
-        },
-
-        // آدرس کامل
-        {
-            name: "address",
-            type: "textarea",
-            label: "آدرس کامل",
-            required: false,
-        },
-
-        // توضیحات
-        {
-            name: "description",
-            type: "textarea",
-            label: "توضیحات",
-        },
+  admin: {
+    useAsTitle: "name",
+    group: "اطلاعات پایه",
+    defaultColumns: [
+      "customer_type",
+      "name",
+      "mobile",
+      "national_id",
+      "economic_code",
     ],
-};
+  },
 
-export default Customers;
+ access: {
+    read: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+
+      if (!memberToken && !isAdminUser) return false;
+
+      if (isAdminUser) return true;
+      if (memberToken?.role === "admin") return true;
+
+      return true; // برای ساده‌سازی فعلاً همه رسیدها برای اعضا قابل مشاهده است
+    },
+
+    create: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+
+      return !!memberToken || !!isAdminUser;
+    },
+
+    update: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+
+      if (!memberToken && !isAdminUser) return false;
+      if (isAdminUser || memberToken?.role === "admin") return true;
+
+      return true;
+    },
+
+    delete: ({ req }) => {
+      const memberToken = authenticateMember(req);
+      const isAdminUser = req.user && req.user.collection === "users";
+
+      if (!memberToken && !isAdminUser) return false;
+      if (isAdminUser || memberToken?.role === "admin") return true;
+
+      return false; // اعضای عادی اجازه حذف ندارند
+    },
+  },
+
+  fields: [
+    {
+      name: "customer_type",
+      type: "select",
+      label: "نوع مشتری",
+      required: true,
+      options: [
+        { label: "حقیقی", value: "person" },
+        { label: "حقوقی", value: "company" },
+      ],
+      defaultValue: "person",
+    },
+
+    {
+      name: "name",
+      type: "text",
+      label: "نام / نام شرکت",
+      required: true,
+    },
+
+    {
+      name: "national_id",
+      type: "text",
+      label: "کد ملی / شناسه ملی",
+    },
+
+    {
+      name: "mobile",
+      type: "text",
+      label: "موبایل",
+    },
+
+    {
+      name: "phone",
+      type: "text",
+      label: "تلفن ثابت",
+    },
+
+    {
+      name: "economic_code",
+      type: "text",
+      label: "کد اقتصادی",
+    },
+
+    {
+      name: "postal_code",
+      type: "text",
+      label: "کد پستی",
+    },
+
+    {
+      name: "birth_or_register_date",
+      type: "date",
+      label: "تاریخ تولد / تاریخ ثبت شرکت",
+    },
+
+    {
+      name: "address",
+      type: "textarea",
+      label: "آدرس",
+    },
+
+    {
+      name: "description",
+      type: "textarea",
+      label: "توضیحات",
+    },
+  ],
+};

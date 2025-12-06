@@ -75,8 +75,11 @@ export interface Config {
     products: Product;
     permissions: Permission;
     customers: Customer;
+    document_types: DocumentType;
     receipts: Receipt;
     receiptitems: Receiptitem;
+    inventorystock: Inventorystock;
+    inventorytransactions: Inventorytransaction;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -92,8 +95,11 @@ export interface Config {
     products: ProductsSelect<false> | ProductsSelect<true>;
     permissions: PermissionsSelect<false> | PermissionsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    document_types: DocumentTypesSelect<false> | DocumentTypesSelect<true>;
     receipts: ReceiptsSelect<false> | ReceiptsSelect<true>;
     receiptitems: ReceiptitemsSelect<false> | ReceiptitemsSelect<true>;
+    inventorystock: InventorystockSelect<false> | InventorystockSelect<true>;
+    inventorytransactions: InventorytransactionsSelect<false> | InventorytransactionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -312,16 +318,27 @@ export interface Permission {
  */
 export interface Customer {
   id: number;
-  customerType: 'real' | 'company';
+  customer_type: 'person' | 'company';
   name: string;
-  nationalId?: string | null;
+  national_id?: string | null;
   mobile?: string | null;
   phone?: string | null;
-  economicCode?: string | null;
-  postalCode?: string | null;
-  birthOrRegisterDate?: string | null;
+  economic_code?: string | null;
+  postal_code?: string | null;
+  birth_or_register_date?: string | null;
   address?: string | null;
   description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "document_types".
+ */
+export interface DocumentType {
+  id: number;
+  code: number;
+  label: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -331,6 +348,7 @@ export interface Customer {
  */
 export interface Receipt {
   id: number;
+  docType: number | DocumentType;
   receiptNo?: number | null;
   member: number | Member;
   status: 'draft' | 'final';
@@ -385,32 +403,66 @@ export interface Receipt {
  */
 export interface Receiptitem {
   id: number;
-  product?: (number | null) | Product;
+  product: number | Product;
+  owner: number | Customer;
+  is_parent?: boolean | null;
+  parent?: (number | null) | Receiptitem;
+  parent_row?: string | null;
+  row?: string | null;
   national_product_id?: string | null;
   product_description?: string | null;
   count?: number | null;
-  productionType?: ('domestic' | 'import') | null;
-  isUsed?: boolean | null;
-  isDefective?: boolean | null;
-  weights?: {
-    fullWeight?: number | null;
-    emptyWeight?: number | null;
-    netWeight?: number | null;
-    originWeight?: number | null;
-    weightDiff?: number | null;
-  };
-  dimensions?: {
-    length?: number | null;
-    width?: number | null;
-    thickness?: number | null;
-  };
-  heatNumber?: string | null;
-  bundleNo?: string | null;
+  production_type?: ('domestic' | 'import') | null;
+  is_used?: boolean | null;
+  is_defective?: boolean | null;
+  weights_full_weight?: number | null;
+  weights_empty_weight?: number | null;
+  weights_net_weight?: number | null;
+  weights_origin_weight?: number | null;
+  weights_weight_diff?: number | null;
+  dimensions_length?: number | null;
+  dimensions_width?: number | null;
+  dimensions_thickness?: number | null;
+  heat_number?: string | null;
+  bundle_no?: string | null;
   brand?: string | null;
-  orderNo?: string | null;
-  depoLocation?: string | null;
-  descriptionNotes?: string | null;
-  row?: string | null;
+  order_no?: string | null;
+  depo_location?: string | null;
+  description_notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventorystock".
+ */
+export interface Inventorystock {
+  id: number;
+  product: number | Product;
+  owner: number | Customer;
+  qtyIn?: number | null;
+  qtyOut?: number | null;
+  weightIn?: number | null;
+  weightOut?: number | null;
+  qtyOnHand?: number | null;
+  weightOnHand?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventorytransactions".
+ */
+export interface Inventorytransaction {
+  id: number;
+  type: 'in' | 'out';
+  ref_receipt?: (number | null) | Receipt;
+  product: number | Product;
+  owner: number | Customer;
+  qty?: number | null;
+  weight?: number | null;
+  snapshot_qty_before?: number | null;
+  snapshot_qty_after?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -471,12 +523,24 @@ export interface PayloadLockedDocument {
         value: number | Customer;
       } | null)
     | ({
+        relationTo: 'document_types';
+        value: number | DocumentType;
+      } | null)
+    | ({
         relationTo: 'receipts';
         value: number | Receipt;
       } | null)
     | ({
         relationTo: 'receiptitems';
         value: number | Receiptitem;
+      } | null)
+    | ({
+        relationTo: 'inventorystock';
+        value: number | Inventorystock;
+      } | null)
+    | ({
+        relationTo: 'inventorytransactions';
+        value: number | Inventorytransaction;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -687,16 +751,26 @@ export interface PermissionsSelect<T extends boolean = true> {
  * via the `definition` "customers_select".
  */
 export interface CustomersSelect<T extends boolean = true> {
-  customerType?: T;
+  customer_type?: T;
   name?: T;
-  nationalId?: T;
+  national_id?: T;
   mobile?: T;
   phone?: T;
-  economicCode?: T;
-  postalCode?: T;
-  birthOrRegisterDate?: T;
+  economic_code?: T;
+  postal_code?: T;
+  birth_or_register_date?: T;
   address?: T;
   description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "document_types_select".
+ */
+export interface DocumentTypesSelect<T extends boolean = true> {
+  code?: T;
+  label?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -705,6 +779,7 @@ export interface CustomersSelect<T extends boolean = true> {
  * via the `definition` "receipts_select".
  */
 export interface ReceiptsSelect<T extends boolean = true> {
+  docType?: T;
   receiptNo?: T;
   member?: T;
   status?: T;
@@ -769,35 +844,63 @@ export interface ReceiptsSelect<T extends boolean = true> {
  */
 export interface ReceiptitemsSelect<T extends boolean = true> {
   product?: T;
+  owner?: T;
+  is_parent?: T;
+  parent?: T;
+  parent_row?: T;
+  row?: T;
   national_product_id?: T;
   product_description?: T;
   count?: T;
-  productionType?: T;
-  isUsed?: T;
-  isDefective?: T;
-  weights?:
-    | T
-    | {
-        fullWeight?: T;
-        emptyWeight?: T;
-        netWeight?: T;
-        originWeight?: T;
-        weightDiff?: T;
-      };
-  dimensions?:
-    | T
-    | {
-        length?: T;
-        width?: T;
-        thickness?: T;
-      };
-  heatNumber?: T;
-  bundleNo?: T;
+  production_type?: T;
+  is_used?: T;
+  is_defective?: T;
+  weights_full_weight?: T;
+  weights_empty_weight?: T;
+  weights_net_weight?: T;
+  weights_origin_weight?: T;
+  weights_weight_diff?: T;
+  dimensions_length?: T;
+  dimensions_width?: T;
+  dimensions_thickness?: T;
+  heat_number?: T;
+  bundle_no?: T;
   brand?: T;
-  orderNo?: T;
-  depoLocation?: T;
-  descriptionNotes?: T;
-  row?: T;
+  order_no?: T;
+  depo_location?: T;
+  description_notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventorystock_select".
+ */
+export interface InventorystockSelect<T extends boolean = true> {
+  product?: T;
+  owner?: T;
+  qtyIn?: T;
+  qtyOut?: T;
+  weightIn?: T;
+  weightOut?: T;
+  qtyOnHand?: T;
+  weightOnHand?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventorytransactions_select".
+ */
+export interface InventorytransactionsSelect<T extends boolean = true> {
+  type?: T;
+  ref_receipt?: T;
+  product?: T;
+  owner?: T;
+  qty?: T;
+  weight?: T;
+  snapshot_qty_before?: T;
+  snapshot_qty_after?: T;
   updatedAt?: T;
   createdAt?: T;
 }

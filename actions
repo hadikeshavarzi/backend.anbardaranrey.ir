@@ -1,0 +1,4 @@
+ id | type | qty | weight | product_id | snapshot_qty_before | snapshot_qty_after | snapshot_weight_before | snapshot_weight_after | ref_clearance_id | updated_at | created_at | owner_id | owner 
+----+------+-----+--------+------------+---------------------+--------------------+------------------------+-----------------------+------------------+------------+------------+----------+-------
+(0 rows)
+

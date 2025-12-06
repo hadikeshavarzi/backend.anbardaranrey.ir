@@ -1,3 +1,5 @@
+// src/collections/ReceiptItems.ts
+
 import type { CollectionConfig } from "payload";
 import { authenticateMember } from "../lib/authMembers";
 
@@ -7,107 +9,162 @@ export const ReceiptItems: CollectionConfig = {
   admin: {
     group: "رسیدها",
     useAsTitle: "product_description",
-    defaultColumns: ["product", "national_product_id", "count", "weights.netWeight"],
+    defaultColumns: [
+      "product",
+      "row",
+      "is_parent",
+      "count",
+      "weights_net_weight",
+    ],
   },
 
   access: {
-    read: ({ req }) => {
-      const memberToken = authenticateMember(req);
-      const isAdminUser = req.user && req.user.collection === "users";
-      return !!memberToken || !!isAdminUser;
-    },
-    create: ({ req }) => {
-      const memberToken = authenticateMember(req);
-      const isAdminUser = req.user && req.user.collection === "users";
-      return !!memberToken || !!isAdminUser;
-    },
-    update: ({ req }) => {
-      const memberToken = authenticateMember(req);
-      const isAdminUser = req.user && req.user.collection === "users";
-      return !!memberToken || !!isAdminUser;
-    },
-    delete: ({ req }) => {
-      const memberToken = authenticateMember(req);
-      const isAdminUser = req.user && req.user.collection === "users";
-      return !!memberToken || !!isAdminUser;
-    },
+    read: ({ req }) => !!authenticateMember(req) || !!req.user,
+    create: ({ req }) => !!authenticateMember(req) || !!req.user,
+    update: ({ req }) => !!authenticateMember(req) || !!req.user,
+    delete: ({ req }) => !!authenticateMember(req) || !!req.user,
   },
 
   fields: [
-    // 🔥 رابطه واقعی به محصولات
+    // --- کالا ---
     {
       name: "product",
       type: "relationship",
       relationTo: "products",
       label: "کالای انتخاب‌شده",
+      required: true,
     },
 
-    // 🔥 شناسه ملی کالا (از API سامانه جامع)
+    // --- مشتری ---
     {
-      name: "national_product_id",
-      type: "text",
-      label: "شناسه ملی کالا",
+      name: "owner",
+      type: "relationship",
+      relationTo: "customers",
+      label: "مالک کالا",
+      required: true,
     },
 
-    // 🔥 شرح کالا از سامانه جامع
+    // --- Parent / Child ---
     {
-      name: "product_description",
-      type: "text",
-      label: "شرح کالا (سامانه جامع)",
+      name: "is_parent",
+      type: "checkbox",
+      label: "آیا ردیف والد است؟",
+      defaultValue: false,
     },
 
-    // مقدار
+    {
+      name: "parent",
+      type: "relationship",
+      relationTo: "receiptitems",
+      label: "والد",
+      required: false,
+      admin: { condition: (data) => !data?.is_parent },
+    },
+
+    {
+      name: "parent_row",
+      type: "text",
+      label: "ردیف والد",
+      admin: { readOnly: true, condition: (data) => !data?.is_parent },
+    },
+
+    // --- Row ---
+    {
+      name: "row",
+      type: "text",
+      label: "شماره ردیف / Parent Code",
+      admin: { condition: (data) => data?.is_parent === true },
+    },
+
+    // --- سایر فیلدها ---
+    { name: "national_product_id", type: "text", label: "شناسه ملی" },
+    { name: "product_description", type: "text", label: "شرح کالا" },
     { name: "count", type: "number", label: "تعداد", defaultValue: 0 },
 
-    // تولید
     {
-      name: "productionType",
+      name: "production_type",
       type: "select",
-      label: "نوع تولید",
+      required: false,
       options: [
         { label: "داخلی", value: "domestic" },
         { label: "وارداتی", value: "import" },
       ],
     },
 
-    // وضعیت‌ها
-    { name: "isUsed", type: "checkbox", defaultValue: false, label: "مستعمل" },
-    { name: "isDefective", type: "checkbox", defaultValue: false, label: "معیوب" },
+    { name: "is_used", type: "checkbox", defaultValue: false, label: "مستعمل" },
+    { name: "is_defective", type: "checkbox", defaultValue: false, label: "معیوب" },
 
-    // وزن‌ها
-    {
-      type: "group",
-      name: "weights",
-      label: "وزن‌ها",
-      fields: [
-        { name: "fullWeight", type: "number", defaultValue: 0, label: "وزن پر" },
-        { name: "emptyWeight", type: "number", defaultValue: 0, label: "وزن خالی" },
-        { name: "netWeight", type: "number", defaultValue: 0, label: "وزن خالص" },
-        { name: "originWeight", type: "number", defaultValue: 0, label: "وزن مبدأ" },
-        { name: "weightDiff", type: "number", defaultValue: 0, label: "اختلاف وزن" },
-      ],
-    },
+    // --- وزن‌ها ---
+    { name: "weights_full_weight", type: "number", defaultValue: 0 },
+    { name: "weights_empty_weight", type: "number", defaultValue: 0 },
+    { name: "weights_net_weight", type: "number", defaultValue: 0 },
+    { name: "weights_origin_weight", type: "number", defaultValue: 0 },
+    { name: "weights_weight_diff", type: "number", defaultValue: 0 },
 
-    // ابعاد
-    {
-      type: "group",
-      name: "dimensions",
-      label: "ابعاد",
-      fields: [
-        { name: "length", type: "number", defaultValue: 0, label: "طول" },
-        { name: "width", type: "number", defaultValue: 0, label: "عرض" },
-        { name: "thickness", type: "number", defaultValue: 0, label: "ضخامت" },
-      ],
-    },
+    // --- ابعاد ---
+    { name: "dimensions_length", type: "number", defaultValue: 0 },
+    { name: "dimensions_width", type: "number", defaultValue: 0 },
+    { name: "dimensions_thickness", type: "number", defaultValue: 0 },
 
-    { name: "heatNumber", type: "text", label: "Heat No" },
-    { name: "bundleNo", type: "text", label: "شماره بسته" },
-    { name: "brand", type: "text", label: "برند" },
-    { name: "orderNo", type: "text", label: "شماره سفارش" },
-    { name: "depoLocation", type: "text", label: "محل دپو" },
-
-    { name: "descriptionNotes", type: "textarea", label: "توضیحات" },
-
-    { name: "row", type: "text", label: "ردیف" },
+    // --- متفرقه ---
+    { name: "heat_number", type: "text" },
+    { name: "bundle_no", type: "text" },
+    { name: "brand", type: "text" },
+    { name: "order_no", type: "text" },
+    { name: "depo_location", type: "text" },
+    { name: "description_notes", type: "textarea" },
   ],
+
+  hooks: {
+    beforeChange: [
+      async ({ data, req, operation }) => {
+        if (operation !== "create") return data;
+
+        const payload = req.payload;
+
+        // ------------ CHILD ------------
+        if (!data.is_parent && data.parent) {
+          const parentItem = await payload.findByID({
+            collection: "receiptitems",
+            id: data.parent,
+          });
+
+          data.parent_row = parentItem.row;
+          data.row = parentItem.row;
+          return data;
+        }
+
+        // ------------ PARENT ------------
+        if (data.is_parent) {
+          const lastParent = await payload.find({
+            collection: "receiptitems",
+            where: {
+              and: [
+                { owner: { equals: data.owner } },
+                { product: { equals: data.product } },
+                { is_parent: { equals: true } },
+              ],
+            },
+            sort: "-id",
+            limit: 1,
+          });
+
+          let next = 1;
+
+          if (lastParent.docs.length > 0) {
+            const lastRow = String(lastParent.docs[0].row || "");
+            const lastNum = parseInt(lastRow.replace(/\D/g, "") || "0", 10);
+            next = lastNum + 1;
+          }
+
+          data.row = next.toString().padStart(4, "0");
+          data.parent_row = data.row;
+
+          return data;
+        }
+
+        return data;
+      },
+    ],
+  },
 };

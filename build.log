@@ -1,0 +1,83 @@
+
+> payload@1.0.0 build
+> cross-env NODE_OPTIONS="--no-deprecation --max-old-space-size=8000" next build
+
+   ▲ Next.js 15.4.7
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 77s
+   Linting and checking validity of types ...
+
+./src/app/(frontend)/MemberWelcome.tsx
+6:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+13:22  Warning: 'err' is defined but never used. Allowed unused caught errors must match /^(_|ignore)/u.  @typescript-eslint/no-unused-vars
+
+./src/collections/Clearances.ts
+58:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/collections/ProductCategories.ts
+2:10  Warning: 'checkAccess' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/collections/ProductUnits.ts
+2:10  Warning: 'checkAccess' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/collections/Products.ts
+2:10  Warning: 'checkAccess' is defined but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/collections/Receipts.ts
+65:39  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/endpoints/authMe.ts
+30:21  Warning: 'otp_code' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+31:21  Warning: 'otp_expires' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/endpoints/clearances.ts
+16:17  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+17:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+26:22  Warning: 'req' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+49:75  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+59:36  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+171:21  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/endpoints/inventory.ts
+21:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/lib/authMembers.ts
+10:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/payload.config.ts
+211:19  Warning: 'otp_code' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+211:29  Warning: 'otp_expires' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+234:19  Warning: 'req' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+264:77  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+274:38  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+402:23  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/7) ...
+   Generating static pages (1/7) 
+   Generating static pages (3/7) 
+   Generating static pages (5/7) 
+ ✓ Generating static pages (7/7)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    5.71 kB         106 kB
+├ ○ /_not-found                             1 kB         102 kB
+├ ƒ /admin/[[...segments]]                 372 B         540 kB
+├ ƒ /api/[...slug]                         179 B         101 kB
+├ ƒ /api/graphql                           133 B         101 kB
+├ ƒ /api/graphql-playground                179 B         101 kB
+└ ƒ /my-route                              133 B         101 kB
++ First Load JS shared by all             101 kB
+  ├ chunks/4bd1b696-cc729d47eba2cee4.js  54.1 kB
+  ├ chunks/5964-366ccf0ec1d891e8.js      43.9 kB
+  └ other shared chunks (total)          2.71 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
